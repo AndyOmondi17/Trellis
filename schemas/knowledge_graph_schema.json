@@ -1,0 +1,381 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://trellis.edtech/schemas/knowledge_graph_schema.json",
+  "title": "Trellis Proprietary Mathematics Knowledge Graph Schema",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "graph_id",
+    "generated_at_utc",
+    "provenance",
+    "course_catalog",
+    "nodes"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "2.0.0-trellis"
+    },
+    "graph_id": {
+      "type": "string",
+      "pattern": "^trellis-math-dag-v[0-9]+\\.[0-9]+\\.[0-9]+$"
+    },
+    "generated_at_utc": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "provenance": {
+      "type": "object",
+      "required": [
+        "methodology",
+        "dirty_room_inventory_sha256",
+        "worker_model_id",
+        "source_text_exposure",
+        "ip_audit_passed"
+      ],
+      "properties": {
+        "methodology": {
+          "type": "string",
+          "const": "Two-Room Air-Gapped Clean-Room Synthesis (Naked Mathematical Facts -> First-Principles CLT/MAW Decomposition)"
+        },
+        "dirty_room_inventory_sha256": {
+          "type": "string",
+          "pattern": "^[a-f0-9]{64}$"
+        },
+        "worker_model_id": { "type": "string" },
+        "source_text_exposure": {
+          "type": "string",
+          "const": "NONE_AIR_GAPPED"
+        },
+        "ip_audit_passed": { "type": "boolean" }
+      },
+      "additionalProperties": false
+    },
+    "course_catalog": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["course_id", "course_code", "title", "grade_band", "benchmark_xp", "mastery_floor_course_ids"],
+        "properties": {
+          "course_id": { "type": "string", "pattern": "^CRS_[A-Z0-9_]+$" },
+          "course_code": { "type": "string", "pattern": "^[a-z0-9]{3}$" },
+          "title": { "type": "string" },
+          "grade_band": { "type": "string" },
+          "benchmark_xp": { "type": "integer", "minimum": 500 },
+          "mastery_floor_course_ids": {
+            "type": "array",
+            "items": { "type": "string", "pattern": "^CRS_[A-Z0-9_]+$" }
+          }
+        },
+        "additionalProperties": false
+      }
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/TopicNode"
+      }
+    }
+  },
+  "$defs": {
+    "TopicNode": {
+      "type": "object",
+      "required": [
+        "id",
+        "title",
+        "course_id",
+        "canonical_domain",
+        "domain_cluster",
+        "skill_type",
+        "bloom_cognitive_tier",
+        "grade_level_min",
+        "grade_level_max",
+        "is_core",
+        "in_foundations_sequence",
+        "requires_automaticity",
+        "automaticity_Defining_latency_ms",
+        "base_difficulty",
+        "estimated_xp",
+        "mastery_gate_n",
+        "key_prerequisite_id",
+        "aligned_standards",
+        "mastery_criteria",
+        "knowledge_points",
+        "diagnostic_blueprint",
+        "prerequisites",
+        "encompassed_skills",
+        "provenance_meta"
+      ],
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^trl_[a-z0-9]{3}_[a-z0-9]{3}_[0-9]{3}$",
+          "description": "Canonical clean-room Trellis Topic ID (trl_<course>_<domain>_<seq>)."
+        },
+        "title": {
+          "type": "string",
+          "minLength": 5,
+          "maxLength": 140
+        },
+        "course_id": {
+          "type": "string",
+          "pattern": "^CRS_[A-Z0-9_]+$"
+        },
+        "canonical_domain": {
+          "type": "string"
+        },
+        "domain_cluster": {
+          "type": "string",
+          "description": "Used by BuildDailySessionQueue (Skill A.3/B.5) to enforce cross-domain micro-interleaving."
+        },
+        "skill_type": {
+          "type": "string",
+          "enum": ["PROCEDURAL", "CONCEPTUAL", "REPRESENTATIONAL", "FLUENCY_FACT", "THEOREM_PROOF"]
+        },
+        "bloom_cognitive_tier": {
+          "type": "string",
+          "enum": ["RETRIEVAL_AUTOMATICITY", "PROCEDURAL_EXECUTION", "CONCEPTUAL_CLASSIFICATION", "MULTI_STEP_SYNTHESIS", "FORMAL_DERIVATION"]
+        },
+        "grade_level_min": { "type": "integer", "minimum": 0, "maximum": 16 },
+        "grade_level_max": { "type": "integer", "minimum": 0, "maximum": 16 },
+        "is_core": {
+          "type": "boolean",
+          "description": "Math Academy Ch. 32 Core Topic flag. If true, all hard prerequisite ancestors must also have is_core=true."
+        },
+        "in_foundations_sequence": {
+          "type": "boolean",
+          "description": "Included in the streamlined Mathematical Foundations (MF) adult/STEM acceleration sequence."
+        },
+        "requires_automaticity": {
+          "type": "boolean"
+        },
+        "automaticity_Defining_latency_ms": {
+          "type": ["integer", "null"],
+          "maximum": 3000,
+          "description": "<= 3000 ms for atomic fact retrieval nodes per trellis-engine Skill A.6."
+        },
+        "base_difficulty": {
+          "type": "number",
+          "minimum": 0.1,
+          "maximum": 1.0,
+          "description": "Baseline topic_difficulty parameter used in HSRS interval expansion multiplier."
+        },
+        "estimated_xp": {
+          "type": "integer",
+          "minimum": 2,
+          "maximum": 6,
+          "description": "1 XP ~ 1 minute of focused effort; Frontier lessons award 3-5 XP."
+        },
+        "mastery_gate_n": {
+          "type": "integer",
+          "const": 3,
+          "description": "N=3 consecutive unassisted correct answers per Knowledge Point."
+        },
+        "key_prerequisite_id": {
+          "type": ["string", "null"],
+          "pattern": "^trl_[a-z0-9]{3}_[a-z0-9]{3}_[0-9]{3}$",
+          "description": "Topic-level fallback prerequisite triggered on Tier-3 remediation (null only for K-1 root nodes)."
+        },
+        "aligned_standards": {
+          "type": "array",
+          "items": { "type": "string" },
+          "description": "Factual standard codes only (e.g., ccss-math:A-REI.B.4, uk-nc-2013:KS3.Maths.Alg.11)."
+        },
+        "mastery_criteria": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 4,
+          "items": { "type": "string" },
+          "description": "Original, operational verification criteria passed as `evidence` to trellis-pedagogy."
+        },
+        "knowledge_points": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 4,
+          "items": {
+            "$ref": "#/$defs/KnowledgePointSpec"
+          }
+        },
+        "diagnostic_blueprint": {
+          "type": "object",
+          "required": ["stem_template", "target_kp_index", "expected_time_seconds", "exercised_prerequisite_ids"],
+          "properties": {
+            "stem_template": { "type": "string" },
+            "target_kp_index": { "type": "integer", "minimum": 1, "maximum": 3 },
+            "expected_time_seconds": { "type": "integer", "minimum": 3, "maximum": 180 },
+            "exercised_prerequisite_ids": {
+              "type": "array",
+              "items": { "type": "string", "pattern": "^trl_[a-z0-9]{3}_[a-z0-9]{3}_[0-9]{3}$" }
+            }
+          },
+          "additionalProperties": false
+        },
+        "prerequisites": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/PrerequisiteEdge"
+          }
+        },
+        "encompassed_skills": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/EncompassingEdge"
+          }
+        },
+        "provenance_meta": {
+          "type": "object",
+          "required": ["seed_concept_name", "synthesis_pass_ids", "clean_room_verified"],
+          "properties": {
+            "seed_concept_name": { "type": "string" },
+            "synthesis_pass_ids": {
+              "type": "array",
+              "items": { "type": "string" }
+            },
+            "clean_room_verified": { "type": "boolean" }
+          },
+          "additionalProperties": false
+        }
+      },
+      "additionalProperties": false
+    },
+    "KnowledgePointSpec": {
+      "type": "object",
+      "required": [
+        "kp_index",
+        "kp_id",
+        "scaffolding_tier",
+        "kp_focus",
+        "novel_chunk_count",
+        "key_prerequisite_id",
+        "rule_statement",
+        "canonical_worked_example",
+        "problem_blueprint",
+        "diagnostic_misconceptions"
+      ],
+      "properties": {
+        "kp_index": { "type": "integer", "minimum": 0, "maximum": 3 },
+        "kp_id": { "type": "string", "pattern": "^trl_[a-z0-9]{3}_[a-z0-9]{3}_[0-9]{3}#kp_[0-3]$" },
+        "scaffolding_tier": {
+          "type": "string",
+          "enum": ["KP_1_BASELINE", "KP_2_EDGE_NEGATIVE_FRACTIONAL", "KP_3_MULTI_STEP_INVERSION", "KP_4_SYNTHESIS"]
+        },
+        "kp_focus": { "type": "string" },
+        "novel_chunk_count": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 4,
+          "description": "Sweller CLT hard limit: <= 4 novel interacting chunks per KP."
+        },
+        "key_prerequisite_id": {
+          "type": ["string", "null"],
+          "pattern": "^trl_[a-z0-9]{3}_[a-z0-9]{3}_[0-9]{3}$",
+          "description": "Specific prerequisite topic triggered if student fails twice at this exact KP_j."
+        },
+        "rule_statement": {
+          "type": "string",
+          "description": "Capped at <= 2 clear, authoritative sentences per trellis-pedagogy InstructionCard contract."
+        },
+        "canonical_worked_example": {
+          "type": "object",
+          "required": ["problem", "subgoal_steps", "final_answer"],
+          "properties": {
+            "problem": { "type": "string" },
+            "subgoal_steps": {
+              "type": "array",
+              "minItems": 1,
+              "maxItems": 6,
+              "items": {
+                "type": "object",
+                "required": ["subgoal_label", "operation", "justification"],
+                "properties": {
+                  "subgoal_label": { "type": "string" },
+                  "operation": { "type": "string" },
+                  "justification": { "type": "string" }
+                },
+                "additionalProperties": false
+              }
+            },
+            "final_answer": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        "problem_blueprint": {
+          "type": "object",
+          "required": ["parameter_constraints", "stem_template", "answer_format", "verification_solver_expr"],
+          "properties": {
+            "parameter_constraints": { "type": "string" },
+            "stem_template": { "type": "string" },
+            "answer_format": {
+              "type": "string",
+              "enum": ["EXACT_INTEGER", "SIMPLIFIED_FRACTION", "RADICAL_EXPRESSION", "ALGEBRAIC_EXPRESSION", "ORDERED_PAIR", "SET_OF_ROOTS", "INTERVAL_NOTATION", "MATRIX"]
+            },
+            "verification_solver_expr": { "type": "string" }
+          },
+          "additionalProperties": false
+        },
+        "diagnostic_misconceptions": {
+          "type": "array",
+          "minItems": 2,
+          "maxItems": 4,
+          "items": {
+            "type": "object",
+            "required": ["error_tag", "trap_answer_pattern", "violated_rule", "tier1_remediation_template"],
+            "properties": {
+              "error_tag": { "type": "string" },
+              "trap_answer_pattern": { "type": "string" },
+              "violated_rule": { "type": "string" },
+              "tier1_remediation_template": { "type": "string" }
+            },
+            "additionalProperties": false
+          }
+        }
+      },
+      "additionalProperties": false
+    },
+    "PrerequisiteEdge": {
+      "type": "object",
+      "required": ["prerequisite_id", "strength", "pedagogical_rationale"],
+      "properties": {
+        "prerequisite_id": {
+          "type": "string",
+          "pattern": "^trl_[a-z0-9]{3}_[a-z0-9]{3}_[0-9]{3}$"
+        },
+        "strength": {
+          "type": "string",
+          "enum": ["hard", "soft"]
+        },
+        "pedagogical_rationale": {
+          "type": "string",
+          "maxLength": 200
+        }
+      },
+      "additionalProperties": false
+    },
+    "EncompassingEdge": {
+      "type": "object",
+      "required": ["encompassed_id", "fire_weight", "is_non_ancestor", "component_usage_note"],
+      "properties": {
+        "encompassed_id": {
+          "type": "string",
+          "pattern": "^trl_[a-z0-9]{3}_[a-z0-9]{3}_[0-9]{3}$"
+        },
+        "fire_weight": {
+          "type": "number",
+          "exclusiveMinimum": 0.0,
+          "maximum": 1.0,
+          "description": "Fraction/probability that a problem in this topic exercises encompassed_id (default 0.5 hard, 0.2 soft)."
+        },
+        "is_non_ancestor": {
+          "type": "boolean",
+          "description": "True if encompassed_id is an equivalent lower-course skill not on a direct prerequisite path (Math Academy Ch. 29)."
+        },
+        "component_usage_note": {
+          "type": "string",
+          "maxLength": 200
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "additionalProperties": false
+}

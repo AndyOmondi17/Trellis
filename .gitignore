@@ -1,0 +1,29 @@
+# Bytecode & Caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Local Environment & Secrets
+.env
+.env.*
+!.env.example
+*.log
+
+# Databases & Benchmarks
+*.db
+*.sqlite3
+scripts/benchmark_results.json
+
+# Keep locally, never upload to Git
+os-taxonomy/
+algebrica/
+data/clean_spec/raw_concept_inventory.json
+scripts/extract_naked_concepts.py
+scripts/audit_ip_compliance.py
+
+# Python Virtual Environments & IDE
+.venv/
+venv/
+.idea/
+.vscode/

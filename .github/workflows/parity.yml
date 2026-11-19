@@ -1,0 +1,53 @@
+name: Trellis Dual-Backend Parity & Clean-Room CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  verify-dag-parity-cleanroom:
+    name: DAG Validation, Dual-Backend Parity & Clean-Room Audit
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: "pip"
+
+      - name: Install Trellis with dev & migration dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[dev,migrations]"
+
+      - name: Validate Clean-Room Knowledge Graph DAG
+        run: python scripts/validate_math_dag.py
+
+      - name: Run Full Test Suite (Tiers 0–9 Parity across Memory, Relational & Graph)
+        run: pytest tests/ -v
+
+      - name: Verify Clean-Room Compliance in Source, Tests, Schemas & Spec Data
+        run: |
+          python -c "
+          import pathlib, sys
+          forbidden = ['alge' + 'brica', 'os-' + 'taxonomy']
+          roots = ['src', 'tests', 'schemas', 'data/clean_spec']
+          hits = []
+          for root in roots:
+              for p in pathlib.Path(root).rglob('*'):
+                  if p.is_file() and p.suffix in {'.py', '.json', '.js', '.html', '.css', '.sql', '.md'}:
+                      text = p.read_text(encoding='utf-8', errors='ignore').lower()
+                      for term in forbidden:
+                          if term in text:
+                              hits.append((str(p), term))
+          if hits:
+              print('Clean-room violation detected:', hits)
+              sys.exit(1)
+          print('Clean-room audit passed: 0 forbidden references in tracked code/data.')
+          "
